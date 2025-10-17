@@ -1,0 +1,260 @@
+html,
+body,
+#root {
+    height: 100%;
+    margin: 0;
+}
+
+.app-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+footer {
+    margin-top: auto;
+}
+
+
+.custom-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+}
+
+.custom-card input:focus {
+    box-shadow: 0 0 5px rgba(108, 117, 125, 0.5);
+    border: none;
+
+}
+
+.custom-card input:focus-visible {
+    outline: none;
+    border: none;
+}
+
+.bg-custom {
+    background-color: #f8f9fa
+}
+
+.global-stats {
+    display: flex;
+    justify-content: space-around;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.charts {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.chart-card {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.crypto-table-wrapper {
+    max-height: 500px; /* Vertical scroll if content exceeds height */
+    overflow-y: auto;
+    overflow-x: auto; /* Horizontal scroll for small widths */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.crypto-table {
+    width: 100%;
+    min-width: 800px; /* Ensures horizontal scroll if window is small */
+    border-collapse: collapse;
+}
+
+.crypto-table th,
+.crypto-table td {
+    padding: 12px 8px;
+    text-align: left;
+}
+
+.crypto-table th {
+    background: #f7f7f7;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.crypto-table tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+}
+
+.green {
+    color: #28a745;
+}
+.red {
+    color: #dc3545;
+}
+
+.clickable-row {
+    transition: background 0.2s;
+}
+
+
+.clickable-row:hover {
+    background: #f1f1f1;
+    cursor: pointer;
+}
+
+.green {
+    color: #28a745;
+}
+
+.red {
+    color: #dc3545;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    max-width: 90%;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.spinner-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+
+.crypto-table-container {
+    margin: 20px;
+}
+
+.crypto-table-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.crypto-table-header p {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.crypto-table td>canvas {
+    width: 100% !important;
+    height: 40px !important;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.clickable-row:hover {
+    background-color: #f2f2f2;
+}
+
+.green {
+    color: #28a745;
+}
+
+.red {
+    color: #dc3545;
+}
+
+.global-stats-container {
+    margin: 20px;
+}
+
+.global-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: space-between;
+}
+
+.stat-card {
+    flex: 1 1 22%;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h6 {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stat-card h4 {
+    font-size: 1.4rem;
+    color: #333;
+    margin-bottom: 3px;
+}
+
+.stat-card small {
+    color: #999;
+}

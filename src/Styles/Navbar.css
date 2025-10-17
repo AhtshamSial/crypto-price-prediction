@@ -1,0 +1,55 @@
+/* Custom toggler base */
+.custom-toggler {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 6px;
+}
+
+.navbar-toggler:focus {
+    outline: none;
+    box-shadow: none;
+}
+.toggler-icon {
+    width: 25px;
+    height: 18px;
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.toggler-icon span {
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.toggler-icon span:nth-child(1) {
+    top: 0;
+}
+
+.toggler-icon span:nth-child(2) {
+    top: 7px;
+}
+
+.toggler-icon span:nth-child(3) {
+    top: 14px;
+}
+
+/* Animate to X when expanded */
+.navbar-toggler[aria-expanded="true"] .toggler-icon span:nth-child(1) {
+    transform: rotate(45deg);
+    top: 7px;
+}
+
+.navbar-toggler[aria-expanded="true"] .toggler-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-toggler[aria-expanded="true"] .toggler-icon span:nth-child(3) {
+    transform: rotate(-45deg);
+    top: 7px;
+}

@@ -1,0 +1,12 @@
+flask
+flask-cors
+ccxt
+numpy
+pandas
+scikit-learn
+tensorflow
+textblob
+requests
+pytrends
+matplotlib
+scipy

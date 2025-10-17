@@ -1,0 +1,44 @@
+.crypto-table-wrapper-horizontal {
+    overflow-x: auto;
+    /* horizontal scroll if table width exceeds viewport */
+    overflow-y: visible;
+    /* natural vertical height */
+}
+
+.sparkline-cell {
+    width: 120px;
+    /* fixed width for sparkline chart */
+    height: 40px;
+    /* fixed height */
+}
+
+.sparkline-cell canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.clickable-row:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+}
+
+/* Optional: basic table styling */
+.crypto-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.crypto-table th,
+.crypto-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.green {
+    color: #28a745;
+}
+
+.red {
+    color: #dc3545;
+}
