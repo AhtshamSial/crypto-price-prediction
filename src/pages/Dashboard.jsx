@@ -68,7 +68,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="dashboard-container px-5">
+        <div className="dashboard-container px-lg-5">
 
             {/* Global Stats */}
             <GlobalStats stats={globalStats} />
