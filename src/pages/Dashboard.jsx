@@ -14,6 +14,7 @@ const Dashboard = () => {
 
     const fetchData = async () => {
         try {
+            setLoading(true); // Start spinner
             const [coinsRes, globalRes] = await Promise.all([
                 axios.get("https://api.coingecko.com/api/v3/coins/markets", {
                     params: {
@@ -26,10 +27,9 @@ const Dashboard = () => {
                 }),
                 axios.get("https://api.coingecko.com/api/v3/global"),
             ]);
-
             setCoins(coinsRes.data);
             setGlobalStats(globalRes.data.data);
-            setLoading(false);
+            setTimeout(() => setLoading(false), 500); // Small delay for smooth fade
         } catch (err) {
             console.error("Error fetching data:", err);
             setLoading(false);
@@ -38,11 +38,14 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 30000); // Refresh every 30s
+        const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) return <LoadingSpinner />;
+    // Keep spinner until data is fully available
+    if (loading || coins.length === 0 || !globalStats.total_market_cap) {
+        return <LoadingSpinner />;
+    }
 
     // Charts
     const top5 = coins.slice(0, 5);
@@ -64,32 +67,36 @@ const Dashboard = () => {
             data: c.sparkline_in_7d.price,
             borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
             fill: false,
+            tension: 0.3,
         })),
     };
 
     return (
         <div className="dashboard-container px-lg-5">
-
-            {/* Global Stats */}
             <GlobalStats stats={globalStats} />
 
-            {/* Charts */}
             <div className="charts mb-4">
                 <div className="chart-card">
                     <h6>Top 5 Market Caps</h6>
-                    <Bar data={marketCapData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+                    <Bar
+                        data={marketCapData}
+                        options={{ responsive: true, plugins: { legend: { display: false } } }}
+                    />
                 </div>
                 <div className="chart-card">
                     <h6>Top 5 Sparkline Trends</h6>
-                    <Line data={trendData} options={{ responsive: true, plugins: { legend: { position: "bottom" } } }} />
+                    <Line
+                        data={trendData}
+                        options={{ responsive: true, plugins: { legend: { position: "bottom" } } }}
+                    />
                 </div>
             </div>
 
-            {/* Crypto Table */}
             <CryptoTable coins={coins} onSelectCoin={setSelectedCoin} />
 
-            {/* Coin Modal */}
-            {selectedCoin && <CoinModal coin={selectedCoin} onClose={() => setSelectedCoin(null)} />}
+            {selectedCoin && (
+                <CoinModal coin={selectedCoin} onClose={() => setSelectedCoin(null)} />
+            )}
         </div>
     );
 };

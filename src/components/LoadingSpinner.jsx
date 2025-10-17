@@ -1,10 +1,14 @@
 import React from "react";
-import "../App.css";
+import "../Styles/Spinner.css";
 
-const LoadingSpinner = () => (
-    <div className="spinner-overlay">
-        <div className="spinner"></div>
-    </div>
-);
+const LoadingSpinner = () => {
+    return (
+        <div className="spinner-overlay">
+            <div className="spinner-container">
+                <div className="custom-spinner"></div>
+            </div>
+        </div>
+    );
+};
 
 export default LoadingSpinner;
