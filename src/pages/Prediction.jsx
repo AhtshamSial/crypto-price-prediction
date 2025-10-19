@@ -71,21 +71,25 @@ export default function Prediction() {
         setResult(null);
         try {
             const res = await api.post("/predict", { symbol, investment });
-            // Backend returns object like { symbol, price, direction, confidence, sentiment, atr, stop_loss, take_profit, leverage, timestamp }
-            let data = res.data;
-            // If backend returns nested or different shape, adapt here.
-            // For safety, if key fields missing, use demo fallback
-            if (!data || !data.price) {
-                data = demoFallback(symbol, investment);
-                data.note = "fallback";
+
+            // Handle backend error case
+            if (res.data.error) {
+                throw new Error(res.data.message || "Prediction engine error");
             }
-            setResult(data);
+
+            // If backend sends valid data
+            if (!res.data.price) {
+                throw new Error("Incomplete data from AI model");
+            }
+
+            setResult(res.data);
         } catch (err) {
             console.error("Prediction API error:", err);
-            // use demo fallback to keep UI responsive for event/demo
-            const fallback = demoFallback(symbol, investment);
-            fallback.note = "api_error_fallback";
-            setResult(fallback);
+            alert(`Prediction failed: ${err.message || "Server error. Please try again later."}`);
+            // Optionally comment next line if you don’t want fallback at all
+            // const fallback = demoFallback(symbol, investment);
+            // fallback.note = "api_error_fallback";
+            // setResult(fallback);
         } finally {
             setLoading(false);
         }
