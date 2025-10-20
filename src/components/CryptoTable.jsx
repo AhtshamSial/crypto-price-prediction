@@ -51,16 +51,32 @@ const CryptoTable = ({ coins, onSelectCoin }) => {
                             };
 
                             return (
-                                <tr key={coin.id} onClick={() => onSelectCoin(coin)} className="clickable-row">
+                                <tr
+                                    key={coin.id}
+                                    onClick={() => onSelectCoin(coin)}
+                                    className="clickable-row"
+                                >
                                     <td>{i + 1}</td>
                                     <td>
-                                        <img src={coin.image} alt={coin.name} width="20" style={{ marginRight: "5px" }} />
+                                        <img
+                                            src={coin.image}
+                                            alt={coin.name}
+                                            width="20"
+                                            style={{ marginRight: "5px" }}
+                                        />
                                         {coin.name} ({coin.symbol.toUpperCase()})
                                     </td>
                                     <td>${coin.current_price.toLocaleString()}</td>
                                     <td>${coin.market_cap.toLocaleString()}</td>
-                                    <td className={coin.price_change_percentage_24h > 0 ? "green" : "red"}>
-                                        {coin.price_change_percentage_24h.toFixed(2)}%
+                                    <td
+                                        className={
+                                            coin.price_change_percentage_24h > 0 ? "green" : "red"
+                                        }
+                                    >
+                                        {coin.price_change_percentage_24h !== null &&
+                                        coin.price_change_percentage_24h !== undefined
+                                            ? `${coin.price_change_percentage_24h.toFixed(2)}%`
+                                            : "N/A"}
                                     </td>
                                     <td>${coin.total_volume.toLocaleString()}</td>
                                     <td>
