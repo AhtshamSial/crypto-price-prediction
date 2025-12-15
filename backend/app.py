@@ -1,12 +1,15 @@
 # backend/app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from trading_engine import get_prediction
+from crypto_engine import CryptoPredictor  # Your full backend code with ML/DL models
 
 app = Flask(__name__)
 
-# Allow both localhost and 127.0.0.1 frontend URLs
+# Allow CORS for frontend running on localhost
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5173", "http://localhost:5173"]}})
+
+# Initialize predictor once
+predictor = CryptoPredictor()
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -15,19 +18,25 @@ def predict():
         if not data:
             return jsonify({"error": True, "message": "No input data provided"}), 400
 
-        symbol = data.get("symbol", "BTC/USDT")
-        investment = float(data.get("investment", 100))
+        symbol = data.get("symbol", "BTC").upper()
 
-        result = get_prediction(symbol, investment)
+        # Run your backend predictor
+        result = predictor.run(symbol)
 
-        # Validate backend response
-        if not result or "price" not in result or result["price"] is None:
+        # Validate result
+        if not result or "predictions" not in result:
             return jsonify({
                 "error": True,
-                "message": "Trading engine failed to generate prediction."
+                "message": "Prediction engine failed to generate results."
             }), 500
 
-        return jsonify(result)
+        return jsonify({
+            "error": False,
+            "symbol": symbol,
+            "current_price": result.get("current_price"),
+            "predictions": result.get("predictions"),
+            "sentiment": result.get("sentiment", {})
+        })
 
     except Exception as e:
         print(f"[Server Error] {str(e)}")
@@ -38,5 +47,5 @@ def predict():
 
 
 if __name__ == "__main__":
-    # Run on 127.0.0.1:5000 so frontend can access it
+    # Run Flask backend on port 5000
     app.run(host="127.0.0.1", port=5000, debug=True)
