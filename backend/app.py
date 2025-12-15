@@ -6,7 +6,7 @@ from crypto_engine import CryptoPredictor  # Your full backend code with ML/DL m
 app = Flask(__name__)
 
 # Allow CORS for frontend running on localhost
-CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5173", "http://localhost:5173"]}})
+CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5173", "http://localhost:5173","https://crypto-price-prediction-ten.vercel.app/"]}})
 
 # Initialize predictor once
 predictor = CryptoPredictor()
