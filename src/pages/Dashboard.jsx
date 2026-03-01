@@ -1,104 +1,195 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Bar, Line } from "react-chartjs-2";
-import CryptoTable from "../components/CryptoTable";
-import CoinModal from "../components/CoinModal";
-import LoadingSpinner from "../components/LoadingSpinner";
-import GlobalStats from "../components/GlobalStates";
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+// Thin orchestrator: fetches nothing itself — delegates to useDashboard hook.
+// Each section is an isolated component; only the section that changes re-renders.
 
-const Dashboard = () => {
-    const [coins, setCoins] = useState([]);
-    const [globalStats, setGlobalStats] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [selectedCoin, setSelectedCoin] = useState(null);
+import React from "react";
+import {
+    Chart as ChartJS,
+    CategoryScale, LinearScale, PointElement, LineElement,
+    BarElement, ArcElement, Tooltip, Legend, Filler,
+} from "chart.js";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons";
+import { useDashboard } from "../hooks/useDashboard";
+import MarketBanner   from "../components/dashboard/MarketBanner";
+import TrendingBar    from "../components/dashboard/TrendingBar";
+import StatCard       from "../components/dashboard/StatCard";
+import ChartPanel     from "../components/dashboard/ChartPanel";
+import CryptoTable    from "../components/CryptoTable";
+import "../Styles/Dashboard.css";
 
-    const fetchData = async () => {
-        try {
-            setLoading(true); // Start spinner
-            const [coinsRes, globalRes] = await Promise.all([
-                axios.get("https://api.coingecko.com/api/v3/coins/markets", {
-                    params: {
-                        vs_currency: "usd",
-                        order: "market_cap_desc",
-                        per_page: 20,
-                        page: 1,
-                        sparkline: true,
-                    },
-                }),
-                axios.get("https://api.coingecko.com/api/v3/global"),
-            ]);
-            setCoins(coinsRes.data);
-            setGlobalStats(globalRes.data.data);
-            setTimeout(() => setLoading(false), 500); // Small delay for smooth fade
-        } catch (err) {
-            console.error("Error fetching data:", err);
-            setLoading(false);
-        }
-    };
+ChartJS.register(
+    CategoryScale, LinearScale, PointElement, LineElement,
+    BarElement, ArcElement, Tooltip, Legend, Filler
+);
 
-    useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 60000);
-        return () => clearInterval(interval);
-    }, []);
+function fmtT(n) { return n ? "$" + (n / 1e12).toFixed(2) + "T" : "—"; }
+function fmtB(n) { return n ? "$" + (n / 1e9).toFixed(1) + "B" : "—"; }
 
-    // Keep spinner until data is fully available
-    if (loading || coins.length === 0 || !globalStats.total_market_cap) {
-        return <LoadingSpinner />;
-    }
+export default function Dashboard() {
+    const {
+        coins, globalStats, trending,
+        status, isStale, isRefreshing, lastUpdated,
+        isInitialLoad, refresh,
+    } = useDashboard();
 
-    // Charts
-    const top5 = coins.slice(0, 5);
-    const marketCapData = {
-        labels: top5.map((c) => c.symbol.toUpperCase()),
-        datasets: [
-            {
-                label: "Market Cap",
-                data: top5.map((c) => c.market_cap),
-                backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#6f42c1"],
-            },
-        ],
-    };
 
-    const trendData = {
-        labels: top5[0]?.sparkline_in_7d?.price.map((_, i) => i) || [],
-        datasets: top5.map((c) => ({
-            label: c.symbol.toUpperCase(),
-            data: c.sparkline_in_7d.price,
-            borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
-            fill: false,
-            tension: 0.3,
-        })),
-    };
+    // ── Derive stat card data ─────────────────────────────────────────────────
+    const mcap        = globalStats?.total_market_cap?.usd || 0;
+    const vol         = globalStats?.total_volume?.usd || 0;
+    const btcDom      = globalStats?.market_cap_percentage?.btc || 0;
+    const activeCoin  = globalStats?.active_cryptocurrencies || 0;
+    const mcapChange  = globalStats?.market_cap_change_percentage_24h_usd || 0;
+
+    // ── Sparklines derived entirely from coins[] — no extra API calls ──────────
+    // Market Cap card: sum of top-10 market caps across each sparkline hour
+    const mcapPrices = (() => {
+        const top10 = coins.slice(0, 10);
+        if (!top10.length || !top10[0]?.sparkline_in_7d?.price?.length) return [];
+        const len = top10[0].sparkline_in_7d.price.length;
+        return Array.from({ length: len }, (_, i) =>
+            top10.reduce((sum, c) => sum + (c.sparkline_in_7d?.price?.[i] ?? 0), 0)
+        );
+    })();
+
+    // Volume card: use top-3 coins' sparklines summed as a volume-shape proxy
+    const volPrices = (() => {
+        const top3 = coins.slice(0, 3);
+        if (!top3.length || !top3[0]?.sparkline_in_7d?.price?.length) return [];
+        const len = top3[0].sparkline_in_7d.price.length;
+        return Array.from({ length: len }, (_, i) =>
+            top3.reduce((sum, c) => sum + (c.sparkline_in_7d?.price?.[i] ?? 0), 0)
+        );
+    })();
+
+    // BTC Dominance sparkline — use BTC's own 7d sparkline from coins list
+    const btcCoin     = coins.find(c => c.id === "bitcoin");
+    const btcPrices   = btcCoin?.sparkline_in_7d?.price || [];
+    // Dominance as a proxy: BTC price movement ≈ dominance movement trend
+    // For Active Coins we show top-20 24h change as a bar-like trend
+    const top20Changes = coins.map(c => c.price_change_percentage_24h ?? 0);
 
     return (
-        <div className="dashboard-container px-lg-5">
-            <GlobalStats stats={globalStats} />
+        <div className="dashboard">
 
-            <div className="charts mb-4">
-                <div className="chart-card">
-                    <h6>Top 5 Market Caps</h6>
-                    <Bar
-                        data={marketCapData}
-                        options={{ responsive: true, plugins: { legend: { display: false } } }}
-                    />
+            {/* ── Top stats banner (CoinGecko-style header strip) ── */}
+            <MarketBanner globalStats={globalStats} isStale={isStale} />
+
+            {/* ── Page header + refresh ── */}
+            <div className="dashboard__header container-fluid px-lg-5">
+                <div className="dashboard__title-block">
+                    <h1 className="dashboard__title">Cryptocurrency Prices by Market Cap</h1>
+                    <p className="dashboard__subtitle">
+                        The global crypto market cap is{" "}
+                        <strong>{fmtT(mcap)}</strong>
+                        {mcapChange !== 0 && (
+                            <span className={mcapChange >= 0 ? "text-success" : "text-danger"}>
+                                {" "}{mcapChange >= 0 ? "▲" : "▼"} {Math.abs(mcapChange).toFixed(1)}%
+                            </span>
+                        )}{" "}
+                        in the last 24 hours.
+                    </p>
                 </div>
-                <div className="chart-card">
-                    <h6>Top 5 Sparkline Trends</h6>
-                    <Line
-                        data={trendData}
-                        options={{ responsive: true, plugins: { legend: { position: "bottom" } } }}
+                <div className="dashboard__actions">
+                    {lastUpdated && (
+                        <span className="dashboard__updated">
+                            Updated {lastUpdated.toLocaleTimeString()}
+                        </span>
+                    )}
+                    <button
+                        className={`dashboard__refresh-btn ${isRefreshing ? "spinning" : ""}`}
+                        onClick={refresh}
+                        disabled={isRefreshing}
+                        title="Refresh all data"
+                    >
+                        <FontAwesomeIcon icon={faArrowsRotate} />
+                        {isRefreshing ? "Refreshing…" : "Refresh"}
+                    </button>
+                </div>
+            </div>
+
+            {/* ── Trending coins strip ── */}
+            <div className="container-fluid px-lg-5">
+                <TrendingBar
+                    trending={trending}
+                    loading={status.trending === "loading" && trending.length === 0}
+                />
+            </div>
+
+            {/* ── Stat cards (no duplication: only one source of truth each) ── */}
+            <div className="container-fluid px-lg-5">
+                <div className="stat-cards-grid">
+                    <StatCard
+                        
+                        label="Total Market Cap"
+                        value={fmtT(mcap)}
+                        change={mcapChange}
+                        chartPrices={mcapPrices}
+                        chartColor="#667eea"
+                        loading={status.global === "loading" && !globalStats}
+                    />
+                    <StatCard
+                        
+                        label="24h Trading Volume"
+                        value={fmtB(vol)}
+                        subValue="USD"
+                        chartPrices={volPrices}
+                        chartColor="#10b981"
+                        loading={status.global === "loading" && !globalStats}
+                    />
+                    <StatCard
+                        
+                        label="BTC Dominance"
+                        value={btcDom.toFixed(2) + "%"}
+                        subValue={btcDom > 50 ? "Market leader" : "Contested market"}
+                        chartPrices={btcPrices}
+                        chartColor="#f7931a"
+                        formatTooltip={(v) => "$" + v.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                        loading={status.global === "loading" && !globalStats}
+                    />
+                    <StatCard
+                        
+                        label="Active Cryptocurrencies"
+                        value={activeCoin.toLocaleString()}
+                        subValue="Top-20 24h performance"
+                        chartPrices={top20Changes}
+                        chartColor="#8b5cf6"
+                        formatTooltip={(v) => (v >= 0 ? "+" : "") + v.toFixed(2) + "%"}
+                        loading={status.global === "loading" && !globalStats}
                     />
                 </div>
             </div>
 
-            <CryptoTable coins={coins} onSelectCoin={setSelectedCoin} />
+            {/* ── Charts: each sub-chart is isolated, only re-renders on its data ── */}
+            <div className="container-fluid px-lg-5">
+                <ChartPanel
+                    coins={coins}
+                    globalStats={globalStats}
+                    coinsLoading={status.coins === "loading" && coins.length === 0}
+                    statsLoading={status.global === "loading" && !globalStats}
+                />
+            </div>
 
-            {selectedCoin && (
-                <CoinModal coin={selectedCoin} onClose={() => setSelectedCoin(null)} />
-            )}
+            {/* ── Coin table with skeleton loading and sortable columns ── */}
+            <div className="container-fluid px-lg-5">
+                <div className="dashboard__table-header">
+                    <h2 className="dashboard__table-title">
+                        💎 Top {coins.length || 20} Cryptocurrencies by Market Cap
+                    </h2>
+                    {isStale && (
+                        <span className="dashboard__stale-notice">
+                            ⚡ Showing cached data — fetching fresh data…
+                        </span>
+                    )}
+                </div>
+                <CryptoTable
+                    coins={coins}
+                    loading={status.coins === "loading"}
+                />
+            </div>
+
+            {/* ── Coin detail modal ── */}
+
         </div>
     );
-};
-
-export default Dashboard;
+}

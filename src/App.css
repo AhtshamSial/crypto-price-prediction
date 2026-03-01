@@ -1,6 +1,5 @@
-html,
-body,
-#root {
+
+html, body, #root {
     height: 100%;
     margin: 0;
 }
@@ -11,12 +10,13 @@ body,
     min-height: 100vh;
 }
 
-footer {
-    margin-top: auto;
-}
+.green { color: #28a745; }
+.red   { color: #dc3545; }
 
 
-.custom-card {
+
+
+ .custom-card {
     background-color: #f8f9fa;
     border-radius: 10px;
 }
@@ -59,7 +59,6 @@ footer {
     border-radius: 8px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-
 
 
 .crypto-table-wrapper {

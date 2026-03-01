@@ -1,12 +1,37 @@
-flask
-flask-cors
-ccxt
-numpy
-pandas
-scikit-learn
-tensorflow
-textblob
-requests
-pytrends
-matplotlib
-scipy
+# ============================================================
+# Crypto Price Forecaster — FastAPI Backend
+# Python 3.10+  |  pip install -r requirements.txt
+# ============================================================
+
+# --- FastAPI stack ---
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-dotenv>=1.0.0
+pydantic>=2.6.0
+
+# --- HTTP / WebSocket ---
+requests>=2.31.0
+websocket-client>=1.7.0
+
+# --- Data & numerics ---
+numpy>=1.26.0
+pandas>=2.1.0
+pyarrow>=14.0.0
+scikit-learn>=1.4.0
+
+# --- Statistical models ---
+prophet>=1.1.5
+pmdarima>=2.0.4
+
+# --- Deep learning ---
+torch>=2.2.0
+
+# --- Hyperparameter tuning ---
+optuna>=3.5.0
+
+# --- Sentiment analysis ---
+vaderSentiment>=3.3.2
+
+# --- Misc ---
+python-dateutil>=2.8.2
+pytz>=2024.1
