@@ -1,25 +1,4 @@
-"""
-model_training.py
-=================
-Crypto price forecasting — model setup, training, caching, validation, and backtesting.
 
-Improvements over v1:
-  - MC Dropout uncertainty estimation (point estimate + confidence interval, free)
-  - Stacking ensemble (Ridge meta-learner) instead of naive mean
-  - Proper walk-forward backtest (rolling window, not static split)
-  - Optuna hyperparameter search (free, no paid services)
-  - Separate model cache per coin fingerprint
-  - Gradient clipping + early stopping for deep models
-
-Models:
-  1. Prophet      (statistical baseline)
-  2. SARIMA       (statistical baseline)
-  3. LSTM         (PyTorch, MC Dropout)
-  4. Transformer  (PyTorch, MC Dropout)
-  5. Stacking Ensemble (Ridge meta-learner on val predictions)
-
-Forecast horizons: 7d, 30d, 90d, 180d, 365d
-"""
 
 from __future__ import annotations
 
@@ -75,7 +54,7 @@ HORIZONS = [7, 30, 90, 180, 365]
 HORIZON_LABELS = ["1w", "1m", "3m", "6m", "1y"]
 
 # Number of MC Dropout forward passes for uncertainty estimation
-MC_SAMPLES = 50
+MC_SAMPLES = 20
 
 
 # ---------------------------------------------------------------------------
