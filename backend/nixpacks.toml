@@ -1,15 +1,2 @@
-# nixpacks.toml — place in fastapi_backend/ alongside main.py
-#
-# Root cause: Nixpacks creates a venv at /opt/venv but the default
-# "python" on PATH is the bare Nix python which has NO pip module.
-# Solution: use /opt/venv/bin/pip directly — it always exists.
-
 [variables]
 PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cpu"
-
-[phases.install]
-cmds = [
-  "/opt/venv/bin/pip install --upgrade pip",
-  "/opt/venv/bin/pip install torch==2.3.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu --no-cache-dir",
-  "/opt/venv/bin/pip install -r requirements.txt --no-cache-dir"
-]
