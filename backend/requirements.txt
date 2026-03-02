@@ -1,6 +1,15 @@
 # ============================================================
 # Crypto Price Forecaster — FastAPI Backend
 # Python 3.10+  |  pip install -r requirements.txt
+#
+# IMPORTANT — PyTorch CPU-only:
+#   Railway has no GPU. The default pip index installs CUDA torch (~2GB)
+#   which causes build timeouts. CPU-only torch is ~200MB and fully
+#   sufficient for training + inference + MC Dropout.
+#
+#   nixpacks.toml in this directory sets:
+#     PIP_EXTRA_INDEX_URL = https://download.pytorch.org/whl/cpu
+#   so pip resolves torch==2.3.1+cpu automatically from that index.
 # ============================================================
 
 # --- FastAPI stack ---
@@ -23,8 +32,9 @@ scikit-learn>=1.4.0
 prophet>=1.1.5
 pmdarima>=2.0.4
 
-# --- Deep learning ---
-torch>=2.2.0
+# --- Deep learning — CPU-only ---
+# nixpacks.toml pre-installs this with --extra-index-url so pip can find it.
+torch==2.3.1+cpu
 
 # --- Hyperparameter tuning ---
 optuna>=3.5.0

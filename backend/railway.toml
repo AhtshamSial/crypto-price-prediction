@@ -1,0 +1,22 @@
+# railway.toml
+# Place this file in your fastapi_backend/ root directory.
+#
+# Key settings:
+#   buildCommand  — runs BEFORE the Procfile start command.
+#                   We install CPU-only torch first (separate pip call
+#                   so Railway can cache it), then the rest.
+#   startCommand  — same as Procfile but explicit here as a fallback.
+
+[build]
+builder = "nixpacks"
+
+[build.env]
+# Tell pip where to find CPU-only PyTorch wheels.
+# This makes `torch==2.3.1+cpu` resolvable without needing
+# a --extra-index-url flag in requirements.txt on some pip versions.
+PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cpu"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
