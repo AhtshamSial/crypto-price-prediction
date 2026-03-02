@@ -10,7 +10,7 @@ PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cpu"
 [phases.install]
 cmds = [
   # Step 1: install CPU-only torch first (largest package, ~200MB vs ~2GB CUDA)
-  "pip install torch==2.3.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu --no-cache-dir",
+  "python -m pip install torch==2.3.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu --no-cache-dir",
   # Step 2: install everything else (prophet, fastapi, optuna, etc.)
   "pip install -r requirements.txt --no-cache-dir"
 ]
