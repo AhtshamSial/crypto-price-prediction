@@ -6,21 +6,18 @@ Pydantic models for request / response validation.
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 
-# ── Request ───────────────────────────────────────────────────────────────────
-
+# Request
 class PredictRequest(BaseModel):
     coin: str = Field(..., description="Coin ticker, e.g. BTC")
     run_backtest: bool = Field(False, description="Include walk-forward backtest metrics")
 
 
-# ── Live market sub-model ─────────────────────────────────────────────────────
-
+# Live market sub-model
 class LiveMarket(BaseModel):
     price: Optional[float] = None
     price_change_pct_24h: Optional[float] = None
@@ -31,26 +28,21 @@ class LiveMarket(BaseModel):
     timestamp: Optional[str] = None
 
 
-# ── Forecast sub-model ────────────────────────────────────────────────────────
-
+# Forecast sub-model
 class ForecastData(BaseModel):
     horizons: List[str] = Field(default_factory=list)
     current_price: Optional[float] = None
-
-    # Per-model predictions (list aligned with horizons)
     ensemble: List[Optional[float]] = Field(default_factory=list)
     ensemble_lower: List[Optional[float]] = Field(default_factory=list)
     ensemble_upper: List[Optional[float]] = Field(default_factory=list)
     ensemble_uncertainty: List[Optional[float]] = Field(default_factory=list)
-
     prophet: List[Optional[float]] = Field(default_factory=list)
     sarima: List[Optional[float]] = Field(default_factory=list)
     lstm: List[Optional[float]] = Field(default_factory=list)
     transformer: List[Optional[float]] = Field(default_factory=list)
 
 
-# ── Validation metrics sub-model ─────────────────────────────────────────────
-
+# Validation metrics
 class HorizonMetric(BaseModel):
     mae: float
     rmse: float
@@ -58,8 +50,7 @@ class HorizonMetric(BaseModel):
     dir_acc: float
 
 
-# ── Main response ─────────────────────────────────────────────────────────────
-
+# Main response
 class PredictResponse(BaseModel):
     coin: str
     generated_at: str
@@ -70,9 +61,10 @@ class PredictResponse(BaseModel):
     backtest_metrics: Dict[str, Any] = Field(default_factory=dict)
 
 
-# ── Health response ───────────────────────────────────────────────────────────
-
+# Health response - now includes training progress
 class HealthResponse(BaseModel):
-    status: str
+    status: str                              # "starting" | "training" | "ready"
     trained_coins: List[str]
     supported_coins: List[str]
+    currently_training: Optional[str] = None  # which coin is training right now
+    failed_coins: List[str] = Field(default_factory=list)
