@@ -25,8 +25,8 @@ log = logging.getLogger("data_pipeline")
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-SUPPORTED_COINS = ["BTC"]
-# SUPPORTED_COINS = ["BTC", "ETH", "BNB", "SOL", "XRP"]
+# SUPPORTED_COINS = ["BTC"]
+SUPPORTED_COINS = ["BTC", "ETH", "BNB", "SOL", "XRP"]
 
 COINGECKO_IDS: Dict[str, str] = {
     "BTC": "bitcoin",
