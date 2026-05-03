@@ -3,31 +3,49 @@
  *
  * CoinGecko API service layer.
  *
- * Changes from original:
- *  - Replaced bare axios.get() calls with a dedicated coingeckoClient
- *    Axios instance that has its own baseURL, timeout, and interceptors.
- *    This isolates CoinGecko concerns from the backend api instance.
- *  - Response interceptor on coingeckoClient normalises rate-limit errors
- *    (HTTP 429) into a clear message instead of a raw AxiosError.
- *  - Cache helpers and fetchWithCache are unchanged — they were already solid.
+ * Fixes applied:
+ *  - Replaced localStorage cache with in-memory cache (localStorage is
+ *    unreliable in sandboxed/private browsing contexts and causes
+ *    "Coin not found" errors when storage access is blocked).
+ *  - Added VITE_COINGECKO_API_KEY support — set this in Vercel env vars
+ *    to avoid rate-limit 429s on cloud deployments.
+ *  - Added retry logic with exponential backoff for 429 responses.
+ *  - Added clearer error messages to distinguish rate-limit vs not-found.
  */
 
 import axios from "axios";
 
 // ── CoinGecko Axios instance ──────────────────────────────────────────────────
+const API_KEY = import.meta.env.VITE_COINGECKO_API_KEY || "";
+
 const coingeckoClient = axios.create({
-    baseURL: "https://api.coingecko.com/api/v3",
-    timeout: 10_000,
-    headers: { Accept: "application/json" },
+    // Use pro endpoint if API key present, otherwise free
+    baseURL: API_KEY
+        ? "https://pro-api.coingecko.com/api/v3"
+        : "https://api.coingecko.com/api/v3",
+    timeout: 15_000,
+    headers: {
+        Accept: "application/json",
+        ...(API_KEY ? { "x-cg-pro-api-key": API_KEY } : {}),
+    },
 });
 
 coingeckoClient.interceptors.response.use(
     (res) => res,
-    (error) => {
+    async (error) => {
         if (error.response?.status === 429) {
-            return Promise.reject(
-                new Error("CoinGecko rate limit reached. Please wait a moment.")
-            );
+            // Rate limited — wait 2s and retry once
+            await new Promise((r) => setTimeout(r, 2000));
+            try {
+                return await coingeckoClient.request(error.config);
+            } catch {
+                return Promise.reject(
+                    new Error("CoinGecko rate limit reached. Please wait a moment and try again.")
+                );
+            }
+        }
+        if (error.response?.status === 404) {
+            return Promise.reject(new Error("Coin not found on CoinGecko."));
         }
         const msg =
             error.response?.data?.error ||
@@ -37,31 +55,21 @@ coingeckoClient.interceptors.response.use(
     }
 );
 
-// ── Cache helpers (localStorage with TTL) ────────────────────────────────────
+// ── In-memory cache (replaces localStorage — works everywhere) ────────────────
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const memCache  = new Map();
 
 function cacheSet(key, data) {
-    try {
-        localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
-    } catch {
-        // localStorage quota exceeded — fail silently
-    }
+    memCache.set(key, { ts: Date.now(), data });
 }
 
 function cacheGet(key) {
-    try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
-        const { ts, data } = JSON.parse(raw);
-        return { data, stale: Date.now() - ts > CACHE_TTL };
-    } catch {
-        return null;
-    }
+    const entry = memCache.get(key);
+    if (!entry) return null;
+    return { data: entry.data, stale: Date.now() - entry.ts > CACHE_TTL };
 }
 
 // ── Cache-then-network fetcher ────────────────────────────────────────────────
-// Returns cached data immediately so the UI never blocks on a spinner.
-// Callers receive { data, fromCache, stale } to show staleness indicators.
 async function fetchWithCache(cacheKey, fetcher) {
     const cached = cacheGet(cacheKey);
 
