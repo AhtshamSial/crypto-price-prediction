@@ -24,9 +24,9 @@ export const HORIZON_LABELS = {
 };
 
 export const COINS = [
+    { symbol: "BNB", name: "Binance Coin", icon: "⬡",  color: "#f3ba2f" },
     { symbol: "BTC", name: "Bitcoin",      icon: "₿",  color: "#f7931a" },
     { symbol: "ETH", name: "Ethereum",     icon: "Ξ",  color: "#627eea" },
-    { symbol: "BNB", name: "Binance Coin", icon: "⬡",  color: "#f3ba2f" },
     { symbol: "SOL", name: "Solana",       icon: "◎",  color: "#9945ff" },
     { symbol: "XRP", name: "XRP",          icon: "✕",  color: "#346aa9" },
 ];
