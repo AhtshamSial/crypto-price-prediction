@@ -1,2 +1,7 @@
+[phases.setup]
+nixPkgs = ["python311", "gcc", "libstdcxx5"]
+
 [variables]
+# CPU-only PyTorch — Railway has no GPU
 PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cpu"
+PYTHON_VERSION = "3.11"

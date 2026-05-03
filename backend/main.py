@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,7 +35,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ── CORS ────────────────────────────────────────────────────────────────────
+# ── CORS ─────────────────────────────────────────────────────────────────────
+# ALLOWED_ORIGINS env var is a comma-separated list.
+# In production: set it to your Vercel frontend URL, e.g.:
+#   ALLOWED_ORIGINS=https://your-app.vercel.app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
