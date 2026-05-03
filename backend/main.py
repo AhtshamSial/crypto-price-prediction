@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import logging
-import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.trainer_state import trainer_state
@@ -35,21 +34,43 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 # ── CORS ─────────────────────────────────────────────────────────────────────
-# ALLOWED_ORIGINS env var is a comma-separated list.
-# In production: set it to your Vercel frontend URL, e.g.:
-#   ALLOWED_ORIGINS=https://your-app.vercel.app
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Using a manual middleware instead of FastAPI's CORSMiddleware because
+# starlette's implementation returns 400 on OPTIONS preflights when the
+# origin list is non-empty in certain versions.
+class CORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        origin = request.headers.get("origin", "")
+        allowed = settings.ALLOWED_ORIGINS
+
+        cors_headers = {
+            "Access-Control-Allow-Origin": origin if origin in allowed else "",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, X-Request-ID",
+            "Access-Control-Max-Age": "600",
+        }
+
+        # Return 200 immediately for preflight requests
+        if request.method == "OPTIONS":
+            if origin in allowed:
+                return Response(status_code=200, headers=cors_headers)
+            return Response(status_code=403)
+
+        # For actual requests, add CORS headers to the response
+        response = await call_next(request)
+        if origin in allowed:
+            for key, value in cors_headers.items():
+                response.headers[key] = value
+        return response
+
+
+app.add_middleware(CORSMiddleware)
 
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(prediction.router, prefix="/api", tags=["Prediction"])
+
 
 # ── Debug (remove after confirming CORS works) ────────────────────────────────
 @app.get("/debug")
