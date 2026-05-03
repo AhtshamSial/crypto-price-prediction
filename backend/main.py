@@ -50,3 +50,8 @@ app.add_middleware(
 # ── Routers ──────────────────────────────────────────────────────────────────
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(prediction.router, prefix="/api", tags=["Prediction"])
+
+# ── Debug (remove after confirming CORS works) ────────────────────────────────
+@app.get("/debug")
+async def debug():
+    return {"allowed_origins": settings.ALLOWED_ORIGINS}
