@@ -330,7 +330,7 @@ const IndicatorsGrid = memo(({ indicators }) => {
             {/* ── Header ── */}
             <div className="pred-card-header ind-header">
                 <div>
-                    <h3 className="pred-card-title">📊 Technical Indicators</h3>
+                    <h3 className="pred-card-title">Technical Indicators</h3>
                     <p className="pred-card-hint">
                         {Object.values(counts).reduce((a, b) => a + b, 0)} indicators across {GROUPS.length} categories
                     </p>
